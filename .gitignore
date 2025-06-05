@@ -1,3 +1,7 @@
+# Server-specific information
+/data/server_configs.json
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
