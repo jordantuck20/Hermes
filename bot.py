@@ -62,9 +62,9 @@ async def setchannel_error(ctx, error):
         await ctx.send("An error occurred while processing the command.")
 
 
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=30)
 async def check_for_updates():
-    appids = [553850]
+    appids = [553850, 1295660]
 
     for guild in bot.guilds:
         channel_id = get_update_channel(guild.id)
