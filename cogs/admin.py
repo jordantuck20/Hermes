@@ -17,10 +17,11 @@ class AdminCommands(commands.Cog):
         guild_id = ctx.guild.id
         channel = channel or ctx.channel
 
-        guild_cfg = self.config_manager.get_guild_config(guild_id)
-        guild_cfg["channel_id"] = channel.id
+        if not ctx.guild:
+            await ctx.send("This command can only be used in a server.")
+            return
 
-        self.config_manager.update_guild_config(guild_id, guild_cfg)
+        await self.config_manager.set_guild_channel_id(guild_id, channel.id)
 
         await ctx.send(f"Set {channel.mention} as the update channel for this server.")
 

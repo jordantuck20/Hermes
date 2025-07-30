@@ -1,8 +1,7 @@
 # bot.py
-import json
 import logging
+from logging.handlers import RotatingFileHandler
 import os
-
 import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -13,11 +12,25 @@ from utils.news_manager import NewsManager
 from utils.subscription_manager import SubscriptionManager
 
 os.makedirs("logs", exist_ok=True)
-logging.basicConfig(
-    filename="logs/error.log",
-    level=logging.ERROR,
-    format="%(asctime)s:%(levelname)s:%(name)s: %(message)s",
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+
+error_handler = RotatingFileHandler(
+    "logs/error.log", maxBytes=5 * 1024 * 1024, backupCount=5, encoding="utf-8"
 )
+error_handler.setLevel(logging.ERROR)
+error_handler.setFormatter(formatter)
+root_logger.addHandler(error_handler)
+
+bot_log_handler = RotatingFileHandler(
+    "logs/bot.log", maxBytes=10 * 1024 * 1024, backupCount=3, encoding="utf-8"
+)
+bot_log_handler.setLevel(logging.INFO)
+bot_log_handler.setFormatter(formatter)
+root_logger.addHandler(bot_log_handler)
 
 logger = logging.getLogger("bot")
 
@@ -30,9 +43,9 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 config_manager = ConfigManager()
-subscription_manager = SubscriptionManager(config_manager)
+subscription_manager = SubscriptionManager()
 game_manager = GameManager()
-news_manager = NewsManager(config_manager)
+news_manager = NewsManager()
 
 
 async def load_cogs():
@@ -46,7 +59,42 @@ async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("------")
 
+    # Call create_tables once at bot startup to ensure tables exist
+    from utils.bot_database import create_tables
+
+    create_tables()
+
+    # --- Temporary Test for GameManager ---
+    print("\n--- Running GameManager Database Test ---")
+    game_manager.add_game(553850, "Helldivers 2")
+    game_manager.add_game(1966720, "Lethal Company")
+    game_manager.add_game(945360, "Among Us")
+
+    helldivers_name = game_manager.get_name(553850)
+    print(f"Retrieved game name for 553850: {helldivers_name}")
+    lethal_company_id = game_manager.get_appid_by_name("Lethal Company")
+    print(f"Retrieved appid for 'Lethal Company': {lethal_company_id}")
+    among_us_name_case_insensitive = game_manager.get_appid_by_name("among us")
+    print(f"Retrieved game name for 'among us': {among_us_name_case_insensitive}")
+
+    print("--- GameManager Database Test Complete ---\n")
+    # --- End Temporary Test ---
+
+    print("\n--- Ensuring Guild Configurations ---")
+    for guild in bot.guilds:
+        await config_manager.get_or_create_guild_config(guild.id, guild.name)
+        print(f"Ensured config for guild: {guild.name} ({guild.id})")
+    print("--- Guild Configurations Ensured ---\n")
+
     await load_cogs()
+
+
+@bot.event
+async def on_guild_join(guild):
+    """Called when the bot joins a new guild."""
+    print(f"Joined new guild: {guild.name} ({guild.id})")
+    await config_manager.get_or_create_guild_config(guild.id, guild.name)
+    print(f"Created default config for new guild: {guild.name} ({guild.id})")
 
 
 @bot.event

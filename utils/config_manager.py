@@ -1,38 +1,72 @@
 # utils/config_manager.py
-import json
 import logging
-import os
-from typing import Any
+from typing import Optional, Dict, Any
+
+from utils.bot_database import get_db_session, DiscordServer
 
 logger = logging.getLogger(__name__)
 
 
 class ConfigManager:
-    def __init__(self, config_file: str = "data/server_configs.json"):
-        self.config_file = config_file
-        self.configs: dict[str, Any] = self.load_configs()
+    def __init__(self):
+        logger.info("ConfigManager initialized for database operations.")
 
-    def load_configs(self) -> dict[str, Any]:
-        if not os.path.exists(self.config_file):
-            return {}
-        try:
-            with open(self.config_file, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            logger.error(f"Failed to load configs from {self.config_file}: {e}")
-            raise
+    async def get_or_create_guild_config(
+        self, guild_id: int, guild_name: str
+    ) -> DiscordServer:
+        """
+        Retrieves a guild's configuration from the database, or creates a new one if it doesn't exist
+        """
 
-    def save_configs(self) -> None:
-        try:
-            with open(self.config_file, "w") as f:
-                json.dump(self.configs, f, indent=4)
-        except Exception as e:
-            logger.error(f"Failed to save configs to {self.config_file}: {e}")
-            raise
+        with get_db_session() as session:
+            guild_config = (
+                session.query(DiscordServer).filter_by(server_id=guild_id).first()
+            )
 
-    def get_guild_config(self, guild_id: int) -> dict[str, Any]:
-        return self.configs.get(str(guild_id), {})
+            if not guild_config:
+                logger.info(
+                    f"Guild config not found for {guild_name} ({guild_id}). Creating new default config."
+                )
+                guild_config = DiscordServer(
+                    server_id=guild_id, channel_id=guild_id, server_name=guild_name
+                )
+                session.add(guild_config)
+                session.commit()
+                session.refresh(guild_config)
 
-    def update_guild_config(self, guild_id: int, guild_config: dict[str, Any]) -> None:
-        self.configs[str(guild_id)] = guild_config
-        self.save_configs()
+            return guild_config
+
+    async def get_guild_channel_id(self, guild_id: int) -> Optional[int]:
+        """Retrieves the configured update channel ID for a guild."""
+
+        with get_db_session() as session:
+            guild_config = (
+                session.query(DiscordServer).filter_by(server_id=guild_id).first()
+            )
+            if guild_config:
+                return guild_config.channel_id
+            return None
+
+    async def set_guild_channel_id(self, guild_id: int, channel_id: int) -> None:
+        """Sets the update channel ID for a guild."""
+        with get_db_session() as session:
+            guild_config = (
+                session.query(DiscordServer).filter_by(server_id=guild_id).first()
+            )
+            if guild_config:
+                guild_config.channel_id = channel_id
+                session.commit()
+            else:
+                logger.warning(
+                    f"Attempted to set channel_id for non-existent guild {guild_id}. Creating it."
+                )
+                new_guild = DiscordServer(
+                    server_id=guild_id,
+                    channel_id=channel_id,
+                    server_name="Unknown Guild",
+                )
+                session.add(new_guild)
+                session.commit()
+                logger.info(
+                    f"Created new guild config for {guild_id} with channel {channel_id} during set operation."
+                )

@@ -12,60 +12,73 @@ class SubscriptionCommands(commands.Cog):
 
     @commands.command(name="listgames")
     async def list_games(self, ctx):
+        """Lists all trackable games and your server's subscription status."""
         guild_id = ctx.guild.id
-        subs = self.subscription_manager.get_subscriptions(guild_id)
-        games = self.game_manager.games
+        subs = await self.subscription_manager.get_subscriptions(guild_id)
 
         lines = []
-        for game_name, appid_str in games.items():
-            appid = int(appid_str)
+
+        sorted_games = sorted(
+            self.game_manager.appid_to_name.items(), key=lambda item: item[1].lower()
+        )
+
+        for appid, game_name in sorted_games:
             subscribed = "✅" if appid in subs else "❌"
             lines.append(f"{subscribed} {game_name}")
 
-        message = "Games available for subscription:\n" + "\n".join(lines)
-        await ctx.send(message)
+        if not lines:
+            message = "No games are currently available for subscription. Please contact an admin."
+        else:
+            message = "Games available for subscription:\n" + "\n".join(lines)
+
+        if len(message) > 2000:
+            await ctx.send("The list of games is too long. Please contact an admin. ")
+        else:
+            await ctx.send(message)
 
     @commands.command(name="subscribe")
     async def subscribe(self, ctx, *, game_name: str):
-        appid = None
-        for name, aid_str in self.game_manager.games.items():
-            if name.lower() == game_name.lower():
-                appid = int(aid_str)
-                break
+        """Subscribe your server to receive news updates for a game."""
+        appid = self.game_manager.get_appid_by_name(game_name)
 
         if appid is None:
             await ctx.send(f"Game '{game_name}' not found. Please check the spelling.")
             return
 
         guild_id = ctx.guild.id
-        subs = set(self.subscription_manager.get_subscriptions(guild_id))
-        if appid in subs:
-            await ctx.send(f"You're already subscribed to {game_name}.")
-            return
 
-        self.subscription_manager.add_subscription(guild_id, appid)
-        await ctx.send(f"Subscribed to {game_name} successfully!")
+        success = await self.subscription_manager.add_subscription(guild_id, appid)
+
+        if success:
+            await ctx.send(
+                f"Subscribed to {self.game_manager.get_name(appid)} successfully!"
+            )
+        else:
+            await ctx.send(
+                f"Could not subscribe to {self.game_manager.get_name(appid)}. You might already be subscribed."
+            )
 
     @commands.command(name="unsubscribe")
     async def unsubscribe(self, ctx, *, game_name: str):
-        appid = None
-        for name, aid_str in self.game_manager.games.items():
-            if name.lower() == game_name.lower():
-                appid = int(aid_str)
-                break
+        """Unsubscribe your server from news updates for a game."""
+        appid = self.game_manager.get_appid_by_name(game_name)
 
         if appid is None:
             await ctx.send(f"Game '{game_name}' not found. Please check the spelling.")
             return
 
         guild_id = ctx.guild.id
-        subs = set(self.subscription_manager.get_subscriptions(guild_id))
-        if appid not in subs:
-            await ctx.send(f"You are not subscribed to {game_name}.")
-            return
 
-        self.subscription_manager.remove_subscription(guild_id, appid)
-        await ctx.send(f"Unsubscribed from {game_name} successfully!")
+        success = await self.subscription_manager.remove_subscription(guild_id, appid)
+
+        if success:
+            await ctx.send(
+                f"Unsubscribed from {self.game_manager.get_name(appid)} successfully!"
+            )
+        else:
+            await ctx.send(
+                f"Could not unsubscribe to {self.game_manager.get_name(appid)}. You might not be subscribed."
+            )
 
 
 async def setup(bot):
