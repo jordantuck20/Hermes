@@ -1,3 +1,4 @@
+# cogs/subscriptions.py
 from discord.ext import commands
 
 from bot import game_manager, subscription_manager

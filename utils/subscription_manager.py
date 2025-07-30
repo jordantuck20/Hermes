@@ -1,3 +1,4 @@
+# utils/subscription_manager.py
 from utils.config_manager import ConfigManager
 from typing import Any
 

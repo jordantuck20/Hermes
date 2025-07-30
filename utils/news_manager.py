@@ -1,3 +1,4 @@
+# utils/news_manager.py
 from utils.steam_api import fetch_steam_news
 from utils.config_manager import ConfigManager
 from typing import Any

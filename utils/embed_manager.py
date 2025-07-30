@@ -1,3 +1,4 @@
+# utils/embed_manager.py
 import discord
 from utils.game_manager import GameManager
 
