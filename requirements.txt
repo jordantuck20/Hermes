@@ -1,0 +1,9 @@
+# requirements.txt
+# Core dependencies for the Hermes Discord bot.
+# These versions are based on common stable releases.
+
+discord.py==2.5.2
+mysql-connector-python==9.4.0
+python-dotenv==1.1.1
+requests==2.32.4
+SQLAlchemy==2.0.42
