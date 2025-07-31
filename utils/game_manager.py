@@ -14,7 +14,7 @@ class GameManager:
 
         self._load_games_from_db()
 
-    def _load_games_from_db(self) -> None:
+    def load_games_from_db(self) -> None:
         """Loads all game data from the database into in-memory dictionary"""
         self.appid_to_name.clear()
         self.name_to_appid.clear()
