@@ -65,7 +65,8 @@ class GameManager:
 
                 if needs_commit:
                     session.commit()
-                    self.load_games_from_db()
+                    self.appid_to_name[steam_id] = game_name
+                    self.name_to_appid[game_name.lower()] = steam_id
 
             except Exception as e:
                 session.rollback()
