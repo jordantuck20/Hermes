@@ -65,7 +65,7 @@ class GameManager:
 
                 if needs_commit:
                     session.commit()
-                    self._load_games_from_db()
+                    self.load_games_from_db()
 
             except Exception as e:
                 session.rollback()
