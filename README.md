@@ -49,7 +49,8 @@ This section is for other developers who want to run the bot locally.
 
    - Create a .env file in the root of the project with your Discord bot token and database credentials.
 
-4. **Run the Bot** \*`python bot.py`
+4. **Run the Bot**
+   - `python bot.py`
 
 ---
 
