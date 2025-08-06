@@ -1,5 +1,5 @@
-# Server-specific information
-/data/server_configs.json
+# Custom
+/logs
 
 
 # Byte-compiled / optimized / DLL files
