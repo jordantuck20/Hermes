@@ -1,22 +1,22 @@
 # utils/bot_database.py
-import os
-from datetime import datetime
-from contextlib import contextmanager
 import logging
+import os
+from contextlib import contextmanager
+from datetime import datetime
 
-from sqlalchemy import (  # type: ignore
-    create_engine,
-    Column,
-    Integer,
-    String,
+from dotenv import load_dotenv
+from sqlalchemy import (
     BigInteger,
+    Column,
     DateTime,
     ForeignKey,
+    Integer,
+    String,
     UniqueConstraint,
+    create_engine,
 )
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship  # type: ignore
-from sqlalchemy.engine.url import URL  # type: ignore
-from dotenv import load_dotenv
+from sqlalchemy.engine.url import URL
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +50,10 @@ DATABASE_URL = URL.create(
 
 engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
 
-
 Base = declarative_base()
 
 
 # --- Model definitions ---
-
-
 class Game(Base):
     """Represents a game from Steam."""
 
@@ -156,7 +153,6 @@ class Subscription(Base):
 
 
 # --- Session Management ---
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -175,40 +171,3 @@ def create_tables():
     logger.info("Attempting to create database tables...")
     Base.metadata.create_all(engine)
     logger.info("Database tables created or already exist.")
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    DB_USER = os.getenv("DATABASE_USER")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD")
-    DB_HOST = os.getenv("DATABASE_HOST")
-    DB_PORT = os.getenv("DATABASE_PORT", "3306")
-    DB_NAME = os.getenv("DATABASE_NAME")
-
-    try:
-        temp_database_url = URL.create(
-            drivername="mysql+mysqlconnector",
-            username=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT,
-            database=DB_NAME,
-        )
-        temp_engine = create_engine(temp_database_url, echo=True, pool_pre_ping=True)
-        print(
-            f"Attempting to connect to MySQL at {DB_HOST}:{DB_PORT}/{DB_NAME} with user {DB_USER}"
-        )
-
-        Base.metadata.create_all(temp_engine)
-        print("Tables created successfully (or already exist).")
-    except ValueError as ve:
-        print(f"Configuration Error: {ve}")
-        print(
-            "Please ensure your .env file has DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST, and DATABASE_NAME set correctly."
-        )
-    except Exception as e:
-        print(f"An error occurred during table creation: {e}")
-        print(
-            "Please ensure your MySQL server is running, you've created the 'hermes_db' database, and 'hermes_user' has permissions."
-        )

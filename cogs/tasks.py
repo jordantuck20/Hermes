@@ -1,7 +1,7 @@
 # cogs/tasks.py
 import logging
-import discord
 
+import discord
 from discord.ext import commands, tasks
 
 from bot import config_manager, game_manager, news_manager, subscription_manager
@@ -13,6 +13,15 @@ embed_manager = EmbedManager(game_manager)
 
 class UpdateChecker(commands.Cog):
     def __init__(self, bot):
+        """
+        Initializes the UpdateChecker cog.
+
+        This cog handles the bot's primary recurring rask of checking for and
+        sending new game news updates to subscribed guilds.
+
+        Args:
+            bot (commands.Bot): The bot instance.
+        """
         self.bot = bot
         self.config_manager = config_manager
         self.subscription_manager = subscription_manager
@@ -23,12 +32,21 @@ class UpdateChecker(commands.Cog):
         self.check_for_updates.start()
 
     def cog_unload(self):
+        """
+        Performs cleanup when the cog is unloaded.
+
+        This method ensures the background task is properly cancelled to
+        prevent it from running after the bot shuts down.
+        """
         self.check_for_updates.cancel()
 
     @tasks.loop(minutes=15)
     async def check_for_updates(self):
         """
         Periodically checks for new game news for subscribed guilds.
+
+        This task runs every 15 minutes, iterates through all guilds, and
+        sends news updates for any subscribed games that have new news.
         """
 
         await self.bot.wait_until_ready()
@@ -112,4 +130,9 @@ class UpdateChecker(commands.Cog):
 
 
 async def setup(bot):
+    """
+    Adds the UpdateChecker cog tot he bot.
+
+    This is the entry point for the cog, called by `bot.load_extension`.
+    """
     await bot.add_cog(UpdateChecker(bot))

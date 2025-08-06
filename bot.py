@@ -11,6 +11,8 @@ from utils.game_manager import GameManager
 from utils.news_manager import NewsManager
 from utils.subscription_manager import SubscriptionManager
 
+
+# --- Set up logging ---
 os.makedirs("logs", exist_ok=True)
 
 root_logger = logging.getLogger()
@@ -34,9 +36,13 @@ root_logger.addHandler(bot_log_handler)
 
 logger = logging.getLogger("bot")
 
+
+# --- Load discord token ---
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
+
+# --- Load necessary intents and managers ---
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -57,28 +63,11 @@ async def load_cogs():
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    print("------")
 
     # Call create_tables once at bot startup to ensure tables exist
     from utils.bot_database import create_tables
 
     create_tables()
-
-    # --- Temporary Test for GameManager ---
-    print("\n--- Running GameManager Database Test ---")
-    game_manager.add_game(553850, "Helldivers 2")
-    game_manager.add_game(1966720, "Lethal Company")
-    game_manager.add_game(945360, "Among Us")
-
-    helldivers_name = game_manager.get_name(553850)
-    print(f"Retrieved game name for 553850: {helldivers_name}")
-    lethal_company_id = game_manager.get_appid_by_name("Lethal Company")
-    print(f"Retrieved appid for 'Lethal Company': {lethal_company_id}")
-    among_us_name_case_insensitive = game_manager.get_appid_by_name("among us")
-    print(f"Retrieved game name for 'among us': {among_us_name_case_insensitive}")
-
-    print("--- GameManager Database Test Complete ---\n")
-    # --- End Temporary Test ---
 
     print("\n--- Ensuring Guild Configurations ---")
     for guild in bot.guilds:

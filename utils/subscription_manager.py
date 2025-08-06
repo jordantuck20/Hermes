@@ -2,17 +2,32 @@
 import logging
 from typing import List
 
-from utils.bot_database import get_db_session, Subscription, DiscordServer, Game
+from utils.bot_database import DiscordServer, Game, Subscription, get_db_session
 
 logger = logging.getLogger(__name__)
 
 
 class SubscriptionManager:
     def __init__(self):
+        """
+        Manages game subscriptions for Discord guilds in the database.
+
+        This class provides a clean interface for interactions with the `subscriptions`
+        table, handling the retrieval, creation, and removal of guild-to-game
+        subscriptions.
+        """
         logger.info("SubscriptionManager initialized for database operations.")
 
     async def get_subscriptions(self, guild_id: int) -> List[int]:
-        """Retrieves a list of app IDs to which a guild is subscribed."""
+        """
+        Retrieves a list of Steam App IDs to which a guild is subscribed.
+
+        Args:
+            guild_id (int): The unique ID of the Discord guild.
+
+        Returns:
+            List[int]: A list of Steam Application IDs.
+        """
 
         with get_db_session() as session:
             subscriptions = (
@@ -23,7 +38,16 @@ class SubscriptionManager:
     async def add_subscription(self, guild_id: int, appid: int) -> bool:
         """
         Adds a game subscription for a guild.
-        Returns True if added, False if already subscribed or an error occurs.
+
+        This method checks if the server and game exist and if the subscription
+        already exists before adding a new entry to the database.
+
+        Args:
+            guild_id (int): The unique ID of the Discord guild (server).
+            appid (int): The Steam Application ID for the game.
+
+        Returns:
+            bool: True if the subscription was successfully added, False otherwise.
         """
 
         with get_db_session() as session:
@@ -75,7 +99,16 @@ class SubscriptionManager:
     async def remove_subscription(self, guild_id: int, appid: int) -> bool:
         """
         Removes a game subscription from a guild.
-        Returns True if removed, False if not subscribed or an error occurs.
+
+        This method checks if a subscription exists before deleting the entry
+        from the database.
+
+        Args:
+            guild_id (int): The unique ID of the Discord guild (server).
+            appid (int): The Steam Application ID for the game.
+
+        Returns:
+            bool: True if the subscription was successfully removed, False otherwise.
         """
 
         with get_db_session() as session:

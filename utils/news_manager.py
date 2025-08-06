@@ -1,23 +1,37 @@
 # utils/news_manager.py
 import logging
-from typing import Any, Optional, List, Dict
+from typing import Any, Dict, List, Optional
 
+from utils.bot_database import Subscription, get_db_session
 from utils.steam_api import fetch_steam_news
-
-from utils.bot_database import get_db_session, Subscription
-
 
 logger = logging.getLogger(__name__)
 
 
 class NewsManager:
     def __init__(self):
+        """
+        Initializes the NewsManager for handling Steam news updates.
+
+        This class provides methods for fetching news from the Steam API and
+        for tracking which news items have been sent to subscribed guilds,
+        using the database for persistence.
+        """
         logger.info("NewsManager initialized for database operations.")
 
     async def get_last_news_id(self, guild_id: int, appid: int) -> Optional[int]:
         """
         Retrieves the last recorded news GID for a specific game and guild.
-        Returns the GID (as int) if found, otherwise None.
+
+        This method queries the `subscriptions` table to find the unique ID of the
+        last news item that was successfully sent for a given game and guild.
+
+        Args:
+            guild_id (int): The unique ID of the Discord guild (server).
+            appid (int): The Steam Application ID for the game.
+
+        Returns:
+            Optional[int]: The Global ID (GID) of the last news item, or None if the subscription does not exist or has no GID saved.
         """
 
         with get_db_session() as session:
@@ -33,7 +47,15 @@ class NewsManager:
 
     async def save_last_news_id(self, guild_id: int, appid: int, news_gid: str) -> None:
         """
-        Saves (updates) the last recorded news GID for a specific game and guiild.
+        Saves (updates) the GID of the last news item sent for a subscription.
+
+        This method finds the subscription for a given guild and app ID and updates
+        the `last_news_item_timestamp` in the database.
+
+        Args:
+            guild_id (int): The unique ID of the Discord guild (server).
+            appid (int): The Steam Application ID for the game.
+            news_gid (str): The Global ID (GID) of the news item to save.
         """
 
         with get_db_session() as session:
@@ -65,7 +87,14 @@ class NewsManager:
 
     def fetch_latest_news(seld, appid: int, count: int = 1) -> List[Dict[str, Any]]:
         """
-        Fetches the latest news items for a given app ID from the Steam API.\
+        Fetches the latest news items for a given app ID from the Steam API.
+
+        Args:
+            appid (int): The Steam Application ID for the game.
+            count (int, optional): The number of news items to fetch. Defaults to 1.
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries, where each dictionary represents a news item. Returns an empty list on error.
         """
 
         return fetch_steam_news(appid, count=count)
