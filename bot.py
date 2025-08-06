@@ -1,7 +1,8 @@
 # bot.py
 import logging
-from logging.handlers import RotatingFileHandler
 import os
+from logging.handlers import RotatingFileHandler
+
 import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -10,7 +11,6 @@ from utils.config_manager import ConfigManager
 from utils.game_manager import GameManager
 from utils.news_manager import NewsManager
 from utils.subscription_manager import SubscriptionManager
-
 
 # --- Set up logging ---
 os.makedirs("logs", exist_ok=True)
