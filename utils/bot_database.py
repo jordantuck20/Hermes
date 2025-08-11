@@ -171,3 +171,11 @@ def create_tables():
     logger.info("Attempting to create database tables...")
     Base.metadata.create_all(engine)
     logger.info("Database tables created or already exist.")
+
+
+def close_database_connection():
+    """Closes all connections in the database engine's connection pool."""
+
+    logger.info("Closing all database connections...")
+    engine.dispose()
+    logger.info("Database connections closed.")

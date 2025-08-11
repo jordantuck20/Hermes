@@ -1,12 +1,16 @@
 # bot.py
+import asyncio
 import logging
 import os
+import signal
+import sys
 from logging.handlers import RotatingFileHandler
 
 import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
+from utils.bot_database import close_database_connection
 from utils.config_manager import ConfigManager
 from utils.game_manager import GameManager
 from utils.news_manager import NewsManager
@@ -53,11 +57,63 @@ subscription_manager = SubscriptionManager()
 game_manager = GameManager()
 news_manager = NewsManager()
 
+# --- Initialize shutdown flag ---
+shutting_down = False
+
 
 async def load_cogs():
     await bot.load_extension("cogs.admin")
     await bot.load_extension("cogs.subscriptions")
     await bot.load_extension("cogs.tasks")
+
+
+async def graceful_shutdown():
+    """Performs a graceful shutdown, stopping tasks and closing connections."""
+    global shutting_down
+    if shutting_down:
+        return
+    shutting_down = True
+
+    print("Received shutdown signal. Starting graceful shutdown...")
+    logger.info("Graceful shutdown initiated.")
+
+    try:
+        if tasks_cog := bot.get_cog("Tasks"):
+            if hasattr(tasks_cog, "check_news.stop"):
+                tasks_cog.check_news.stop()
+    except Exception as e:
+        logger.error(f"Error stopping tasks: {e}")
+
+    await config_manager.close()
+    await subscription_manager.close()
+    await news_manager.close()
+
+    try:
+        await close_database_connection()
+    except Exception as e:
+        logger.error(f"Error closing database connection: {e}")
+
+    await bot.close()
+
+    print("Shutdown complete. Exiting process.")
+    sys.exit(0)
+
+
+async def main():
+    """Main function to run the bot and handle shutdown signals."""
+
+    # Register signal handlers to trigger graceful shutdown
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(
+        signal.SIGINT, lambda: loop.create_task(graceful_shutdown())
+    )
+    loop.add_signal_handler(
+        signal.SIGTERM, lambda: loop.create_task(graceful_shutdown())
+    )
+
+    # Load cogs and start the bot
+    await load_cogs()
+    await bot.start(TOKEN)
 
 
 @bot.event
@@ -110,4 +166,4 @@ async def on_command_error(ctx, error):
 
 
 if __name__ == "__main__":
-    bot.run(TOKEN)
+    asyncio.run(main())
