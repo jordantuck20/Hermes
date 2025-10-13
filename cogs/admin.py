@@ -20,9 +20,9 @@ class AdminCommands(commands.Cog):
         self.config_manager = config_manager
         self.game_manager = game_manager
 
-    @commands.command(name="setchannel")
+    @commands.command(name="set_channel")
     @commands.has_permissions(manage_guild=True)
-    async def setchannel(self, ctx, channel: discord.TextChannel = None):
+    async def set_channel(self, ctx, channel: discord.TextChannel = None):
         """
         Sets the news update channel for the server.
 
@@ -44,7 +44,7 @@ class AdminCommands(commands.Cog):
 
         await ctx.send(f"Set {channel.mention} as the update channel for this server.")
 
-    @commands.command(name="reloadgames")
+    @commands.command(name="reload_games")
     @commands.is_owner()
     async def reload_games(self, ctx):
         """

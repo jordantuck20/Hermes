@@ -19,7 +19,7 @@ class SubscriptionCommands(commands.Cog):
         self.subscription_manager = subscription_manager
         self.game_manager = game_manager
 
-    @commands.command(name="listgames")
+    @commands.command(name="list_games")
     async def list_games(self, ctx):
         """
         Lists all trackable games and your server's subscription status.
