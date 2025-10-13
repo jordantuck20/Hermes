@@ -37,7 +37,7 @@ class NewsManager:
         with get_db_session() as session:
             subscription = (
                 session.query(Subscription)
-                .filter_by(server_id=guild_id, steam_id=appid)
+                .filter_by(guild_id=guild_id, app_id=appid)
                 .first()
             )
 
@@ -62,7 +62,7 @@ class NewsManager:
             try:
                 subscription = (
                     session.query(Subscription)
-                    .filter_by(server_id=guild_id, steam_id=appid)
+                    .filter_by(guild_id=guild_id, app_id=appid)
                     .first()
                 )
 
@@ -85,7 +85,7 @@ class NewsManager:
                     exc_info=True,
                 )
 
-    def fetch_latest_news(seld, appid: int, count: int = 1) -> List[Dict[str, Any]]:
+    def fetch_latest_news(self, appid: int, count: int = 1) -> List[Dict[str, Any]]:
         """
         Fetches the latest news items for a given app ID from the Steam API.
 

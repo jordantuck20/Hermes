@@ -41,8 +41,8 @@ class GameManager:
             try:
                 games = session.query(Game).all()
                 for game in games:
-                    self.appid_to_name[game.steam_id] = game.game_name
-                    self.name_to_appid[game.game_name.lower()] = game.steam_id
+                    self.appid_to_name[game.app_id] = game.game_name
+                    self.name_to_appid[game.game_name.lower()] = game.app_id
                 logger.info(f"Loaded {len(games)} games from the database.")
             except Exception as e:
                 logger.error(f"Failed to load games from database: {e}", exc_info=True)
@@ -93,7 +93,7 @@ class GameManager:
         with get_db_session() as session:
             try:
                 # Check if game already exists
-                existing_game = session.query(Game).filter_by(steam_id=steam_id).first()
+                existing_game = session.query(Game).filter_by(app_id=steam_id).first()
                 needs_commit = False
 
                 if existing_game:
@@ -107,7 +107,7 @@ class GameManager:
                             f"Game {game_name} (ID: {steam_id}) already exists."
                         )
                 else:
-                    new_game = Game(steam_id=steam_id, game_name=game_name)
+                    new_game = Game(app_id=steam_id, game_name=game_name)
                     session.add(new_game)
                     logger.info(
                         f"Added new game to database: {game_name} (ID: {steam_id})"

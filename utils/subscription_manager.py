@@ -2,7 +2,7 @@
 import logging
 from typing import List
 
-from utils.bot_database import DiscordServer, Game, Subscription, get_db_session
+from utils.bot_database import Game, Guild, Subscription, get_db_session
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,8 @@ class SubscriptionManager:
         """
 
         with get_db_session() as session:
-            subscriptions = (
-                session.query(Subscription).filter_by(server_id=guild_id).all()
-            )
-            return [sub.steam_id for sub in subscriptions]
+            subscriptions = session.query(Guild).filter_by(guild_id=guild_id).all()
+            return [sub.app_id for sub in subscriptions]
 
     async def add_subscription(self, guild_id: int, appid: int) -> bool:
         """
@@ -52,16 +50,14 @@ class SubscriptionManager:
 
         with get_db_session() as session:
             try:
-                server = (
-                    session.query(DiscordServer).filter_by(server_id=guild_id).first()
-                )
+                server = session.query(Guild).filter_by(guild_id=guild_id).first()
                 if not server:
                     logger.warning(
                         f"Attempted to add subscription for non-existent server {guild_id}."
                     )
                     return False
 
-                game = session.query(Game).filter_by(steam_id=appid).first()
+                game = session.query(Game).filter_by(app_id=appid).first()
                 if not game:
                     logger.warning(
                         f"Attempted to add subscription for unknown game appid {appid}. Game must be added via GameManager first."
@@ -70,7 +66,7 @@ class SubscriptionManager:
 
                 existing_sub = (
                     session.query(Subscription)
-                    .filter_by(server_id=guild_id, steam_id=appid)
+                    .filter_by(guild_id=guild_id, app_id=appid)
                     .first()
                 )
 
@@ -80,7 +76,7 @@ class SubscriptionManager:
                     )
                     return False
 
-                new_subscription = Subscription(server_id=guild_id, steam_id=appid)
+                new_subscription = Subscription(guild_id=guild_id, app_id=appid)
                 session.add(new_subscription)
                 session.commit()
                 logger.info(
@@ -115,7 +111,7 @@ class SubscriptionManager:
             try:
                 subscription_to_remove = (
                     session.query(Subscription)
-                    .filter_by(server_id=guild_id, steam_id=appid)
+                    .filter_by(guild_id=guild_id, app_id=appid)
                     .first()
                 )
 
