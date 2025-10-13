@@ -90,19 +90,19 @@ class UpdateChecker(commands.Cog):
                     latest_news = newsitems[0]
                     latest_news_gid = int(latest_news["gid"])
 
-                    last_gid_stored = await self.news_manager.get_last_news_id(
-                        guild.id, appid
-                    )
+                    # last_gid_stored = await self.news_manager.get_last_news_id(
+                    #     guild.id, appid
+                    # )
 
-                    if last_gid_stored and latest_news_gid <= last_gid_stored:
-                        logger.debug(
-                            f"News GID {latest_news_gid} for appid {appid} is not newer than stored {last_gid_stored} for guild {guild.id}. Skipping."
-                        )
-                        continue
+                    # if last_gid_stored and latest_news_gid <= last_gid_stored:
+                    #     logger.debug(
+                    #         f"News GID {latest_news_gid} for appid {appid} is not newer than stored {last_gid_stored} for guild {guild.id}. Skipping."
+                    #     )
+                    #     continue
 
-                    await self.news_manager.save_last_news_id(
-                        guild.id, appid, str(latest_news_gid)
-                    )
+                    # await self.news_manager.save_last_news_id(
+                    #     guild.id, appid, str(latest_news_gid)
+                    # )
 
                     embed = self.embed_manager.format_news_embed(latest_news, appid)
                     message = self.embed_manager.get_news_message(latest_news, appid)
