@@ -30,6 +30,11 @@ def fetch_steam_news(appid: int, count: int = 1, maxlength: int = 300) -> list[d
         response.raise_for_status()
         data = response.json()
         newsitems = data.get("appnews", {}).get("newsitems", [])
+        newsitems = [
+            item
+            for item in newsitems
+            if item.get("feedname") == "steam_community_announcements"
+        ]
         return newsitems
     except Exception as e:
         logger.error(f"Error fetching Steam news for appid {appid}: {e}")
