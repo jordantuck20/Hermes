@@ -73,6 +73,7 @@ class SubscriptionManager:
                 existing_sub = (
                     session.query(Subscription)
                     .filter_by(guild_id=guild_id, app_id=appid)
+                    .filter_by(is_subscribed=True)
                     .first()
                 )
 
@@ -82,7 +83,9 @@ class SubscriptionManager:
                     )
                     return False
 
-                new_subscription = Subscription(guild_id=guild_id, app_id=appid)
+                new_subscription = Subscription(
+                    guild_id=guild_id, app_id=appid, is_subscribed=True
+                )
                 session.add(new_subscription)
                 session.commit()
                 logger.info(
@@ -118,6 +121,7 @@ class SubscriptionManager:
                 subscription_to_remove = (
                     session.query(Subscription)
                     .filter_by(guild_id=guild_id, app_id=appid)
+                    .filter_by(is_subscribed=True)
                     .first()
                 )
 
@@ -125,7 +129,7 @@ class SubscriptionManager:
                     logger.info(f"Guild {guild_id} is not subscribed to appid {appid}.")
                     return False
 
-                session.delete(subscription_to_remove)
+                subscription_to_remove.is_subscribed = False
                 session.commit()
                 logger.info(
                     f"Removed subscription for guild {guild_id} to appid {appid}."
