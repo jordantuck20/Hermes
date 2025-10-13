@@ -2,7 +2,7 @@
 import logging
 from typing import List
 
-from utils.bot_database import Game, Guild, Subscription, get_db_session
+from utils.db_manager import Game, Guild, Subscription, get_db_session
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,12 @@ class SubscriptionManager:
         """
 
         with get_db_session() as session:
-            subscriptions = session.query(Guild).filter_by(guild_id=guild_id).all()
+            subscriptions = (
+                session.query(Subscription)
+                .filter_by(guild_id=guild_id)
+                .filter_by(is_subscribed=True)
+                .all()
+            )
             return [sub.app_id for sub in subscriptions]
 
     async def add_subscription(self, guild_id: int, appid: int) -> bool:

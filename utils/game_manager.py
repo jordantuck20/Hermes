@@ -2,7 +2,7 @@
 import logging
 from typing import Dict, Optional
 
-from utils.bot_database import Game, get_db_session
+from utils.db_manager import Game, get_db_session
 
 logger = logging.getLogger(__name__)
 

@@ -1,64 +1,11 @@
-# utils/bot_database.py
+# utils/models.py
 from __future__ import annotations
 
-import logging
-import os
-from contextlib import contextmanager
-from datetime import datetime
 from typing import List
 
-from dotenv import load_dotenv
-from sqlalchemy import (
-    BigInteger,
-    Boolean,
-    DateTime,
-    ForeignKey,
-    String,
-    Text,
-    TinyInteger,
-    create_engine,
-    func,
-)
-from sqlalchemy.engine.url import URL
-from sqlalchemy.orm import (
-    DeclarativeBase,
-    Mapped,
-    mapped_column,
-    relationship,
-    sessionmaker,
-)
-
-logger = logging.getLogger(__name__)
-
-# --- Load Environment Variables ---
-load_dotenv()
-
-# --- Database Configuration ---
-DB_USER = os.getenv("DATABASE_USER")
-DB_PASSWORD = os.getenv("DATABASE_PASSWORD")
-DB_HOST = os.getenv("DATABASE_HOST")
-DB_PORT = os.getenv("DATABASE_PORT", "3306")
-DB_NAME = os.getenv("DATABASE_NAME")
-
-if not all([DB_USER, DB_PASSWORD, DB_HOST, DB_NAME]):
-    logger.error(
-        "Missing one or more database environment variables (DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST, DATABASE_NAME)."
-    )
-    logger.error("Please set them up in your .env file or hosting environment.")
-    raise ValueError(
-        "Database connection environment variables are not fully configured. Please check your .env file."
-    )
-
-DATABASE_URL = URL.create(
-    drivername="mysql+mysqlconnector",
-    username=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=DB_PORT,
-    database=DB_NAME,
-)
-
-engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, Text, func
+from sqlalchemy.dialects.mysql import TINYINT
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
@@ -184,7 +131,7 @@ class DeliveryLog(Base):
     )
     delivery_status: Mapped[str] = mapped_column(String(50))
     delivered_at: Mapped[DateTime] = mapped_column(DateTime)
-    attempt_count: Mapped[int] = mapped_column(TinyInteger, default=1)
+    attempt_count: Mapped[int] = mapped_column(TINYINT, default=1)
     error_details: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
@@ -193,24 +140,3 @@ class DeliveryLog(Base):
 
     def __repr__(self):
         return f"<DeliveryLog(news_gid={self.news_gid}, guild_id={self.guild_id}, status='{self.delivery_status}')>"
-
-
-# --- Session Management ---
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-@contextmanager
-def get_db_session():
-    """Yields a database session. Use with 'with' statement for automatic closing."""
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-
-
-def create_tables():
-    """Creates all defined tables in the database."""
-    logger.info("Attempting to create database tables...")
-    Base.metadata.create_all(engine)
-    logger.info("Database tables created or already exist.")

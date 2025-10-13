@@ -65,7 +65,7 @@ async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
 
     # Call create_tables once at bot startup to ensure tables exist
-    from utils.bot_database import create_tables
+    from utils.db_manager import create_tables
 
     create_tables()
 

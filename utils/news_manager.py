@@ -2,7 +2,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from utils.bot_database import Subscription, get_db_session
+from utils.db_manager import Subscription, get_db_session
 from utils.steam_api import fetch_steam_news
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@
 import logging
 from typing import Optional
 
-from utils.bot_database import Guild, get_db_session
+from utils.db_manager import Guild, get_db_session
 
 logger = logging.getLogger(__name__)
 
