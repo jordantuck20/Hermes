@@ -2,7 +2,8 @@
 import logging
 from typing import Optional
 
-from utils.db_manager import Guild, get_db_session
+from utils.db_manager import get_db_session
+from utils.models import Guild
 
 logger = logging.getLogger(__name__)
 
