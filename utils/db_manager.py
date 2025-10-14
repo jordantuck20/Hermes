@@ -2,9 +2,10 @@
 import logging
 from contextlib import contextmanager
 
-from db_config import ENGINE
-from models import Base
 from sqlalchemy.orm import sessionmaker
+
+from utils.db_config import ENGINE
+from utils.models import Base
 
 logger = logging.getLogger(__name__)
 
