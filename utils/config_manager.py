@@ -78,7 +78,7 @@ class ConfigManager:
             channel_id (int): The channel ID to be set as the news channel.
         """
         with get_db_session() as session:
-            guild_config = session.query(Guild).filter_by(server_id=guild_id).first()
+            guild_config = session.query(Guild).filter_by(guild_id=guild_id).first()
             if guild_config:
                 guild_config.channel_id = channel_id
                 session.commit()
